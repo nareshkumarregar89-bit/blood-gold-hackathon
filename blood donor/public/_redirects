@@ -1,6 +1,1 @@
-/*
-  Redirect all requests to index.html
-  This is required for Single Page Applications (SPA) like React
-  when using client-side routing.
-*/
 /*  /index.html  200
