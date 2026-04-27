@@ -12,6 +12,7 @@ const Github = ({ className }) => (
 
 const SignInModal = ({ isOpen, onClose, onSignIn }) => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ const SignInModal = ({ isOpen, onClose, onSignIn }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, name: isSignUp ? name : undefined }),
       });
 
       const data = await response.json();
@@ -90,6 +91,8 @@ const SignInModal = ({ isOpen, onClose, onSignIn }) => {
                       type="text"
                       placeholder="Full Name"
                       required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-white"
                     />
                   </div>

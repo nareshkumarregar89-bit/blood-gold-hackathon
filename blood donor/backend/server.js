@@ -155,25 +155,34 @@ app.get('/api/stats', async (req, res) => {
 
 app.post('/api/auth/signin', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
+    console.log('Login attempt for:', email);
     
     // Check if user exists
     let user = await User.findOne({ email });
     
     if (user) {
-      // For simplicity, we just check plain password (in production use bcrypt)
       if (user.password === password) {
+        console.log('Login successful:', email);
         return res.json({ message: "Login successful", user });
       } else {
+        console.log('Invalid password for:', email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
     } else {
-      // If user doesn't exist, create a new one (Auto-registration on first sign-in for this hackathon)
-      user = new User({ email, password, name: email.split('@')[0] });
-      await user.save();
-      return res.status(201).json({ message: "User created and logged in", user });
+      console.log('Creating new user:', email);
+      // If user doesn't exist, create a new one
+      user = new User({ 
+        email, 
+        password, 
+        name: name || email.split('@')[0] 
+      });
+      const savedUser = await user.save();
+      console.log('User saved successfully:', savedUser._id);
+      return res.status(201).json({ message: "User created and logged in", user: savedUser });
     }
   } catch (error) {
+    console.error('Auth error:', error.message);
     res.status(500).json({ message: error.message });
   }
 });
