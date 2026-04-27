@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, Lock, User, LogIn } from 'lucide-react';
+import { X, Mail, Lock, User, LogIn, Loader2 } from 'lucide-react';
+import API_URL from '../config';
 
 const Github = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -13,12 +14,36 @@ const SignInModal = ({ isOpen, onClose, onSignIn }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate authentication
-    onSignIn({ email, name: email.split('@')[0] });
-    onClose();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/signin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onSignIn(data.user);
+        onClose();
+      } else {
+        setError(data.message || 'Something went wrong');
+      }
+    } catch (err) {
+      setError('Failed to connect to server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,6 +78,11 @@ const SignInModal = ({ isOpen, onClose, onSignIn }) => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm text-center">
+                    {error}
+                  </div>
+                )}
                 {isSignUp && (
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
@@ -99,10 +129,17 @@ const SignInModal = ({ isOpen, onClose, onSignIn }) => {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all flex items-center justify-center"
+                  disabled={loading}
+                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center"
                 >
-                  {isSignUp ? 'Sign Up' : 'Sign In'}
-                  <LogIn className="ml-2 w-5 h-5" />
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      {isSignUp ? 'Sign Up' : 'Sign In'}
+                      <LogIn className="ml-2 w-5 h-5" />
+                    </>
+                  )}
                 </button>
               </form>
 

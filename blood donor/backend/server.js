@@ -45,6 +45,15 @@ const sosSchema = new mongoose.Schema({
 
 const SOS = mongoose.model('SOS', sosSchema);
 
+const userSchema = new mongoose.Schema({
+  email: { type: String, unique: true, required: true },
+  password: { type: String, required: true }, // In a real app, this should be hashed
+  name: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+
 // Initial Inventory Setup (if empty)
 const seedInventory = async () => {
   const count = await Inventory.countDocuments();
@@ -139,6 +148,40 @@ app.get('/api/stats', async (req, res) => {
       activeDonors: donors.length,
       emergencyRequests: sosRequests.length
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/auth/signin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Check if user exists
+    let user = await User.findOne({ email });
+    
+    if (user) {
+      // For simplicity, we just check plain password (in production use bcrypt)
+      if (user.password === password) {
+        return res.json({ message: "Login successful", user });
+      } else {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+    } else {
+      // If user doesn't exist, create a new one (Auto-registration on first sign-in for this hackathon)
+      user = new User({ email, password, name: email.split('@')[0] });
+      await user.save();
+      return res.status(201).json({ message: "User created and logged in", user });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
