@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { Activity, Users, Heart, ArrowUpRight, Zap } from 'lucide-react';
 import API_URL from '../config';
 
